@@ -206,7 +206,7 @@ fn decrypt_encrypted_value(
 fn decrypt_encrypted_value(
   value: String,
   encrypted_value: &[u8],
-  keys: Vec<Vec<u8>>,
+  keys: &[Vec<u8>],
 ) -> Result<String> {
   // cbc
   if !value.is_empty() {
