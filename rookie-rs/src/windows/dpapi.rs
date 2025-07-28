@@ -1,6 +1,6 @@
 use std::{ffi::c_void, ptr};
 
-use eyre::{anyhow, bail, Result};
+use eyre::{bail, Result};
 use windows::Win32::{Foundation, Security::Cryptography};
 
 pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
@@ -37,10 +37,7 @@ pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
     unsafe { std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec() };
   let pbdata_hlocal = Foundation::HLOCAL(data_out.pbData as *mut c_void);
   unsafe {
-    let _ = match Foundation::LocalFree(pbdata_hlocal) {
-      Ok(_) => Ok(()),
-      Err(_) => Err(anyhow!("LocalFree failed")),
-    };
+    let _ = Foundation::LocalFree(pbdata_hlocal);
   };
   Ok(decrypted_data)
 }
