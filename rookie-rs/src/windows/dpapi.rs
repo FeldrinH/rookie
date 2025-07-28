@@ -1,6 +1,6 @@
 use std::{ffi::c_void, ptr};
 
-use eyre::{bail, Context, Result};
+use eyre::{anyhow, bail, Result};
 use windows::Win32::{Foundation, Security::Cryptography};
 
 pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
@@ -19,7 +19,7 @@ pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
   };
 
   unsafe {
-    Cryptography::CryptUnprotectData(
+    let _ = Cryptography::CryptUnprotectData(
       &data_in,
       Some(ptr::null_mut()),
       Some(ptr::null_mut()),
@@ -27,8 +27,7 @@ pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
       Some(ptr::null_mut()),
       0,
       &mut data_out,
-    )
-    .context("CryptUnprotectData failed")?;
+    );
   }
   if data_out.pbData.is_null() {
     bail!("CryptUnprotectData returned a null pointer");
@@ -38,7 +37,10 @@ pub fn decrypt(keydpapi: &[u8]) -> Result<Vec<u8>> {
     unsafe { std::slice::from_raw_parts(data_out.pbData, data_out.cbData as usize).to_vec() };
   let pbdata_hlocal = Foundation::HLOCAL(data_out.pbData as *mut c_void);
   unsafe {
-    Foundation::LocalFree(pbdata_hlocal)?;
+    let _ = match Foundation::LocalFree(pbdata_hlocal) {
+      Ok(_) => Ok(()),
+      Err(_) => Err(anyhow!("LocalFree failed")),
+    };
   };
   Ok(decrypted_data)
 }
