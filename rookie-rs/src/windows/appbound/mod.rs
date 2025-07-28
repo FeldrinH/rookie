@@ -18,11 +18,11 @@ fn decrypt_dpapi(key: &[u8], as_system: bool) -> Result<Vec<u8>> {
   if as_system {
     handle = Some(impersonate::start_impersonate()?);
   }
-  let result = crate::windows::dpapi::decrypt(key)?;
+  let result = crate::windows::dpapi::decrypt(key);
   if let Some(handle) = handle {
     impersonate::stop_impersonate(handle)?;
   }
-  Ok(result)
+  result
 }
 
 fn decrypt_ncrypt(key: &[u8], as_system: bool) -> Result<Vec<u8>> {
@@ -30,11 +30,11 @@ fn decrypt_ncrypt(key: &[u8], as_system: bool) -> Result<Vec<u8>> {
   if as_system {
     handle = Some(impersonate::start_impersonate()?);
   }
-  let result = crate::windows::ncrypt::decrypt(key)?;
+  let result = crate::windows::ncrypt::decrypt(key);
   if let Some(handle) = handle {
     impersonate::stop_impersonate(handle)?;
   }
-  Ok(result)
+  result
 }
 
 pub fn get_keys(key64: &str) -> Result<Vec<Vec<u8>>> {
